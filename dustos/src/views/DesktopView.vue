@@ -309,17 +309,26 @@ function handleContextMenuAction(action: string) {
     case 'changeWallpaper':
       const nextWallpaper = (systemStore.wallpaper + 1) % systemStore.wallpapers.length
       systemStore.changeWallpaper(nextWallpaper)
-      systemStore.addNotification('更换壁纸', `已切换到：${systemStore.wallpapers[nextWallpaper].name}`)
+      const wallpaper = systemStore.wallpapers[nextWallpaper]
+      if (wallpaper) {
+        systemStore.addNotification('更换壁纸', `已切换到：${wallpaper.name}`)
+      }
       break
     case 'settings':
-      desktopStore.openWindow(desktopStore.desktopIcons[2]) // 设置
+      const settingsIcon = desktopStore.desktopIcons[2]
+      if (settingsIcon) {
+        desktopStore.openWindow(settingsIcon) // 设置
+      }
       break
     case 'newFolder':
       desktopStore.createIconGroup('新建文件夹', 100, 100)
       systemStore.addNotification('新建文件夹', '文件夹已创建')
       break
     case 'terminal':
-      desktopStore.openWindow(desktopStore.desktopIcons[1]) // 终端
+      const terminalIcon = desktopStore.desktopIcons[1]
+      if (terminalIcon) {
+        desktopStore.openWindow(terminalIcon) // 终端
+      }
       break
     case 'lockScreen':
       desktopStore.lockScreen()
@@ -345,12 +354,15 @@ function getBootStatusText(): string {
 }
 
 function formatMemory(): string {
-  if (performance && performance.memory) {
-    const used = performance.memory.usedJSHeapSize
-    const total = performance.memory.totalJSHeapSize
-    const usedMB = Math.round(used / 1024 / 1024)
-    const totalMB = Math.round(total / 1024 / 1024)
-    return `${usedMB} MB / ${totalMB} MB`
+  if (performance && 'memory' in performance) {
+    const memory = (performance as any).memory
+    if (memory) {
+      const used = memory.usedJSHeapSize
+      const total = memory.totalJSHeapSize
+      const usedMB = Math.round(used / 1024 / 1024)
+      const totalMB = Math.round(total / 1024 / 1024)
+      return `${usedMB} MB / ${totalMB} MB`
+    }
   }
   return 'N/A'
 }

@@ -135,13 +135,13 @@ const searchResults = computed(() => {
 const recentApps = computed(() => {
   const allApps = desktopStore.desktopIcons
   return [
-    { ...allApps[0], time: '刚刚' },
-    { ...allApps[4], time: '5分钟前' },
-    { ...allApps[1], time: '1小时前' },
-  ]
+    allApps[0] ? { ...allApps[0], time: '刚刚' } : null,
+    allApps[4] ? { ...allApps[4], time: '5分钟前' } : null,
+    allApps[1] ? { ...allApps[1], time: '1小时前' } : null,
+  ].filter((app): app is DesktopIcon & { time: string } => app !== null)
 })
 
-function openApp(icon: DesktopIcon) {
+function openApp(icon: DesktopIcon & { time?: string }) {
   desktopStore.openWindow(icon)
   desktopStore.closeStartMenu()
 }

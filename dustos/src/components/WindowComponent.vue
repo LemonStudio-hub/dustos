@@ -183,7 +183,7 @@ const showOpacityMenu = ref(false)
 const showSnapshotMenu = ref(false)
 const windowOpacity = ref(props.window.opacity || 1)
 
-const windowComponent = shallowRef(components[props.window.component])
+const windowComponent = shallowRef(components[props.window.component as AppComponentName])
 
 const isActive = computed(() => desktopStore.activeWindowId === props.window.id)
 
@@ -347,6 +347,7 @@ function startTouchDrag(e: TouchEvent) {
   if (props.window.isMaximized) return
   isTouchDragging = true
   const touch = e.touches[0]
+  if (!touch) return
   touchStartX = touch.clientX
   touchStartY = touch.clientY
   windowStartX = props.window.x
@@ -356,13 +357,14 @@ function startTouchDrag(e: TouchEvent) {
 function onTouchDrag(e: TouchEvent) {
   if (!isTouchDragging) return
   const touch = e.touches[0]
+  if (!touch) return
   const dx = touch.clientX - touchStartX
   const dy = touch.clientY - touchStartY
-  
+
   // 边界限制
   const newX = Math.max(0, Math.min(window.innerWidth - 100, windowStartX + dx))
   const newY = Math.max(0, Math.min(window.innerHeight - 100, windowStartY + dy))
-  
+
   desktopStore.moveWindow(props.window.id, newX, newY)
 }
 
@@ -375,6 +377,7 @@ function startTouchResize(e: TouchEvent) {
   e.stopPropagation()
   isTouchResizing = true
   const touch = e.touches[0]
+  if (!touch) return
   touchStartX = touch.clientX
   touchStartY = touch.clientY
   resizeStartWidth = props.window.width
@@ -384,13 +387,14 @@ function startTouchResize(e: TouchEvent) {
 function onTouchResize(e: TouchEvent) {
   if (!isTouchResizing) return
   const touch = e.touches[0]
+  if (!touch) return
   const dx = touch.clientX - touchStartX
   const dy = touch.clientY - touchStartY
-  
+
   // 边界限制
   const newWidth = Math.max(200, Math.min(window.innerWidth - windowStartX, resizeStartWidth + dx))
   const newHeight = Math.max(150, Math.min(window.innerHeight - windowStartY, resizeStartHeight + dy))
-  
+
   desktopStore.resizeWindow(props.window.id, newWidth, newHeight)
 }
 

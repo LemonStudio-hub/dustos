@@ -214,14 +214,18 @@ function handleFileSelect(e: Event) {
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
+    if (!file) continue
     const reader = new FileReader()
     reader.onload = (event) => {
-      images.value.push({
-        id: Date.now() + i,
-        name: file.name,
-        url: event.target?.result as string,
-        size: file.size,
-      })
+      const result = event.target?.result
+      if (typeof result === 'string') {
+        images.value.push({
+          id: (Date.now() + i).toString(),
+          name: file.name,
+          url: result,
+          size: file.size,
+        })
+      }
     }
     reader.readAsDataURL(file)
   }

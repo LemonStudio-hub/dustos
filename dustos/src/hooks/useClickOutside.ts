@@ -2,7 +2,7 @@
  * 使用点击外部 Hook
  */
 
-import { onMounted, onUnmounted, Ref } from 'vue'
+import { onMounted, onUnmounted, type Ref } from 'vue'
 
 export function useClickOutside(
   elementRef: Ref<HTMLElement | null>,

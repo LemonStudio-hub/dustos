@@ -149,7 +149,9 @@ const formattedDisplayValue = computed(() => {
   // 千位分隔符
   if (currentValue.value.includes('.')) {
     const parts = currentValue.value.split('.')
-    parts[0] = parseFloat(parts[0]).toLocaleString('en-US')
+    if (parts[0] !== undefined) {
+      parts[0] = parseFloat(parts[0]).toLocaleString('en-US')
+    }
     return parts.join('.')
   }
   

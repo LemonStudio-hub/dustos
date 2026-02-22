@@ -153,8 +153,14 @@ export const useClipboardStore = defineStore('clipboard', () => {
     }
 
     if (history.value.length > 0) {
-      stats.oldestTimestamp = history.value[history.value.length - 1].timestamp
-      stats.newestTimestamp = history.value[0].timestamp
+      const oldestItem = history.value[history.value.length - 1]
+      const newestItem = history.value[0]
+      if (oldestItem) {
+        stats.oldestTimestamp = oldestItem.timestamp
+      }
+      if (newestItem) {
+        stats.newestTimestamp = newestItem.timestamp
+      }
     }
 
     for (const item of history.value) {

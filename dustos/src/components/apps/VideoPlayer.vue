@@ -269,11 +269,13 @@ function toggleMute() {
 
 function cycleSpeed() {
   const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2]
-  const currentIndex = speeds.indexOf(playbackRate.value)
-  playbackRate.value = speeds[(currentIndex + 1) % speeds.length]
-  
+  const currentRate = playbackRate.value ?? 1
+  const currentIndex = speeds.indexOf(currentRate)
+  const newRate = speeds[(currentIndex + 1) % speeds.length]!
+  playbackRate.value = newRate
+
   if (videoRef.value) {
-    videoRef.value.playbackRate = playbackRate.value
+    videoRef.value.playbackRate = newRate!
   }
 }
 
@@ -342,7 +344,10 @@ function removeFromPlaylist(index: number) {
   }
   
   // 释放URL对象
-  URL.revokeObjectURL(playlist.value[index].url)
+  const video = playlist.value[index]
+  if (video) {
+    URL.revokeObjectURL(video.url)
+  }
   playlist.value.splice(index, 1)
   
   if (currentVideoIndex.value > index) {

@@ -1,10 +1,10 @@
 import { ref, reactive } from 'vue'
 import { defineStore } from 'pinia'
 import { useSystemStore } from './system'
-import type { WindowState, DesktopIcon, IconGroup, WindowSnapshot } from '@/types'
+import type { WindowState, DesktopIcon, IconGroup, WindowSnapshot, DesktopWindow } from '@/types'
 
 export const useDesktopStore = defineStore('desktop', () => {
-  const windows = ref<WindowState[]>([])
+  const windows = ref<DesktopWindow[]>([])
   const desktopIcons = ref<DesktopIcon[]>([
     { id: '1', name: '文件管理器', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>', component: 'FileManager', x: 20, y: 20 },
     { id: '2', name: '终端', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>', component: 'Terminal', x: 20, y: 120 },
@@ -75,7 +75,7 @@ export const useDesktopStore = defineStore('desktop', () => {
 
   function openWindow(icon: DesktopIcon) {
     const systemStore = useSystemStore()
-    const existingWindow = windows.value.find(w => w.component === icon.component)
+    const existingWindow = windows.value.find((w: DesktopWindow) => w.component === icon.component)
     if (existingWindow) {
       focusWindow(existingWindow.id)
       if (existingWindow.isMinimized) {
@@ -89,7 +89,7 @@ export const useDesktopStore = defineStore('desktop', () => {
     const screenWidth = window.innerWidth
     const screenHeight = window.innerHeight
 
-    const newWindow: Window = {
+    const newWindow: DesktopWindow = {
       id: Date.now().toString(),
       title: icon.name,
       icon: icon.icon,
@@ -111,19 +111,19 @@ export const useDesktopStore = defineStore('desktop', () => {
 
   function closeWindow(id: string) {
     const systemStore = useSystemStore()
-    const index = windows.value.findIndex(w => w.id === id)
+    const index = windows.value.findIndex((w: DesktopWindow) => w.id === id)
     if (index > -1) {
       windows.value.splice(index, 1)
       systemStore.playSystemSound('windowClose')
       if (activeWindowId.value === id) {
-        activeWindowId.value = windows.value.length > 0 ? windows.value[windows.value.length - 1].id : null
+        activeWindowId.value = windows.value.length > 0 ? windows.value[windows.value.length - 1]?.id ?? null : null
       }
     }
   }
 
   function minimizeWindow(id: string) {
     const systemStore = useSystemStore()
-    const window = windows.value.find(w => w.id === id)
+    const window = windows.value.find((w: DesktopWindow) => w.id === id)
     if (window) {
       window.isMinimized = true
       systemStore.playSystemSound('windowMinimize')
@@ -132,7 +132,7 @@ export const useDesktopStore = defineStore('desktop', () => {
 
   function maximizeWindow(id: string) {
     const systemStore = useSystemStore()
-    const window = windows.value.find(w => w.id === id)
+    const window = windows.value.find((w: DesktopWindow) => w.id === id)
     if (window) {
       window.isMaximized = !window.isMaximized
       if (window.isMaximized) {
@@ -146,9 +146,9 @@ export const useDesktopStore = defineStore('desktop', () => {
         // 恢复之前的位置和大小
         if (window.prevX !== undefined) {
           window.x = window.prevX
-          window.y = window.prevY
-          window.width = window.prevWidth
-          window.height = window.prevHeight
+          window.y = window.prevY ?? 0
+          window.width = window.prevWidth ?? 0
+          window.height = window.prevHeight ?? 0
         }
         systemStore.playSystemSound('windowMaximize')
       }
@@ -156,7 +156,7 @@ export const useDesktopStore = defineStore('desktop', () => {
   }
 
   function focusWindow(id: string) {
-    const window = windows.value.find(w => w.id === id)
+    const window = windows.value.find((w: DesktopWindow) => w.id === id)
     if (window) {
       // 如果是置顶窗口，使用更高的zIndex
       if (window.isPinned) {
@@ -172,7 +172,7 @@ export const useDesktopStore = defineStore('desktop', () => {
   }
 
   function moveWindow(id: string, x: number, y: number) {
-    const window = windows.value.find(w => w.id === id)
+    const window = windows.value.find((w: DesktopWindow) => w.id === id)
     if (window && !window.isMaximized) {
       window.x = x
       window.y = y
@@ -180,7 +180,7 @@ export const useDesktopStore = defineStore('desktop', () => {
   }
 
   function resizeWindow(id: string, width: number, height: number) {
-    const window = windows.value.find(w => w.id === id)
+    const window = windows.value.find((w: DesktopWindow) => w.id === id)
     if (window && !window.isMaximized) {
       window.width = width
       window.height = height
@@ -203,7 +203,7 @@ export const useDesktopStore = defineStore('desktop', () => {
     isLocked.value = false
   }
 
-  function getSortedWindows(): Window[] {
+  function getSortedWindows(): DesktopWindow[] {
     return [...windows.value].sort((a, b) => b.zIndex - a.zIndex)
   }
 
@@ -211,25 +211,31 @@ export const useDesktopStore = defineStore('desktop', () => {
     const sorted = getSortedWindows()
     if (sorted.length === 0) return
 
-    if (activeWindowId.value === sorted[0].id && sorted.length > 1) {
+    const topWindow = sorted[0]
+    if (!topWindow) return
+
+    if (activeWindowId.value === topWindow.id && sorted.length > 1) {
       // 切换到下一个窗口
-      focusWindow(sorted[1].id)
+      const nextWindow = sorted[1]
+      if (nextWindow) {
+        focusWindow(nextWindow.id)
+      }
     } else {
       // 聚焦最上面的窗口
-      focusWindow(sorted[0].id)
+      focusWindow(topWindow.id)
     }
   }
 
   function minimizeAll() {
-    windows.value.forEach(w => w.isMinimized = true)
+    windows.value.forEach((w: DesktopWindow) => w.isMinimized = true)
   }
 
   function restoreAll() {
-    windows.value.forEach(w => w.isMinimized = false)
+    windows.value.forEach((w: DesktopWindow) => w.isMinimized = false)
   }
 
   function pinWindow(id: string) {
-    const window = windows.value.find(w => w.id === id)
+    const window = windows.value.find((w: DesktopWindow) => w.id === id)
     if (window) {
       window.isPinned = !window.isPinned
       // 如果是置顶窗口，使用更高的zIndex
@@ -242,18 +248,18 @@ export const useDesktopStore = defineStore('desktop', () => {
   }
 
   function setWindowOpacity(id: string, opacity: number) {
-    const window = windows.value.find(w => w.id === id)
+    const window = windows.value.find((w: DesktopWindow) => w.id === id)
     if (window) {
       window.opacity = Math.max(0.1, Math.min(1, opacity))
     }
   }
 
   function splitWindow(id: string, direction: 'left' | 'right' | 'top' | 'bottom' | 'quarter') {
-    const window = windows.value.find(w => w.id === id)
+    const window = windows.value.find((w: DesktopWindow) => w.id === id)
     if (!window) return
 
-    const screenWidth = window.innerWidth
-    const screenHeight = window.innerHeight - 48 // 减去任务栏高度
+    const screenWidth = globalThis.innerWidth
+    const screenHeight = globalThis.innerHeight - 48 // 减去任务栏高度
 
     // 先取消最大化状态
     if (window.isMaximized) {
@@ -310,7 +316,7 @@ export const useDesktopStore = defineStore('desktop', () => {
       id: Date.now().toString(),
       name,
       createdAt: Date.now(),
-      windows: windows.value.map(w => ({ ...w }))
+      windows: windows.value.map((w: DesktopWindow) => ({ ...w }))
     }
     snapshots.value.unshift(snapshot)
     saveSnapshots()
@@ -329,7 +335,7 @@ export const useDesktopStore = defineStore('desktop', () => {
     
     // 恢复快照中的窗口
     snapshot.windows.forEach(windowState => {
-      const newWindow: Window = { ...windowState }
+      const newWindow: DesktopWindow = { ...windowState }
       // 重新生成ID以避免冲突
       newWindow.id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
       windows.value.push(newWindow)
@@ -337,10 +343,10 @@ export const useDesktopStore = defineStore('desktop', () => {
     
     // 更新maxZIndex
     if (windows.value.length > 0) {
-      maxZIndex.value = Math.max(...windows.value.map(w => w.zIndex))
+      maxZIndex.value = Math.max(...windows.value.map((w: DesktopWindow) => w.zIndex))
     }
     
-    activeWindowId.value = windows.value.length > 0 ? windows.value[windows.value.length - 1].id : null
+    activeWindowId.value = windows.value.length > 0 ? windows.value[windows.value.length - 1]?.id ?? null : null
     systemStore.addNotification('快照已恢复', `已恢复快照: ${snapshot.name}`)
     return true
   }

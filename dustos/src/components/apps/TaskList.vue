@@ -25,7 +25,7 @@
       <div class="task-stats">
         <div class="stat-item">
           <span class="stat-label">总任务</span>
-          <span class="stat-value">{{ tasks.length }}</span>
+          <span class="stat-value">{{ tasks.value.value.length }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-label">进行中</span>
@@ -106,20 +106,20 @@ const newTask = ref('')
 const filter = ref<'all' | 'active' | 'completed'>('all')
 const editingTaskId = ref<string | null>(null)
 
-const activeTasks = computed(() => tasks.value.filter(t => !t.completed))
-const completedTasks = computed(() => tasks.value.filter(t => t.completed))
+const activeTasks = computed(() => tasks.value.value.filter(t => !t.completed))
+const completedTasks = computed(() => tasks.value.value.filter(t => t.completed))
 
 const filteredTasks = computed(() => {
   if (filter.value === 'active') return activeTasks.value
   if (filter.value === 'completed') return completedTasks.value
-  return tasks.value
+  return tasks.value.value
 })
 
-const hasTasks = computed(() => tasks.value.length > 0)
+const hasTasks = computed(() => tasks.value.value.length > 0)
 
 function addTask() {
   if (newTask.value.trim()) {
-    tasks.value.unshift({
+    tasks.value.value.unshift({
       id: Date.now().toString(),
       text: newTask.value.trim(),
       completed: false,
@@ -131,14 +131,14 @@ function addTask() {
 }
 
 function toggleTask(id: string) {
-  const task = tasks.value.find(t => t.id === id)
+  const task = tasks.value.value.find(t => t.id === id)
   if (task) {
     task.completed = !task.completed
   }
 }
 
 function editTask(id: string) {
-  const task = tasks.value.find(t => t.id === id)
+  const task = tasks.value.value.find(t => t.id === id)
   if (task) {
     const newText = prompt('编辑任务:', task.text)
     if (newText !== null && newText.trim()) {
@@ -149,19 +149,20 @@ function editTask(id: string) {
 
 function deleteTask(id: string) {
   if (confirm('确定要删除这个任务吗？')) {
-    const index = tasks.value.findIndex(t => t.id === id)
+    const index = tasks.value.value.findIndex(t => t.id === id)
     if (index > -1) {
-      tasks.value.splice(index, 1)
+      tasks.value.value.splice(index, 1)
     }
   }
 }
 
 function cyclePriority(id: string) {
-  const task = tasks.value.find(t => t.id === id)
+  const task = tasks.value.value.find(t => t.id === id)
   if (task) {
     const priorities: ('high' | 'medium' | 'low')[] = ['low', 'medium', 'high']
     const currentIndex = priorities.indexOf(task.priority)
-    task.priority = priorities[(currentIndex + 1) % priorities.length]
+    const newPriority = priorities[(currentIndex + 1) % priorities.length]!
+    task.priority = newPriority
   }
 }
 
@@ -176,13 +177,13 @@ function getPriorityIcon(priority: string) {
 
 function markAllCompleted() {
   if (confirm('确定要将所有任务标记为已完成吗？')) {
-    tasks.value.forEach(t => t.completed = true)
+    tasks.value.value.forEach(t => t.completed = true)
   }
 }
 
 function clearCompleted() {
   if (confirm('确定要清除所有已完成的任务吗？')) {
-    tasks.value = tasks.value.filter(t => !t.completed)
+    tasks.value.value = tasks.value.value.filter(t => !t.completed)
   }
 }
 
@@ -202,8 +203,8 @@ function formatDate(date: Date) {
 
 onMounted(() => {
   // 初始化一些示例任务
-  if (tasks.value.length === 0) {
-    tasks.value = [
+  if (tasks.value.value.length === 0) {
+    tasks.value.value = [
       { id: '1', text: '完成项目文档', completed: false, priority: 'high', createdAt: new Date(Date.now() - 3600000) },
       { id: '2', text: '修复系统bug', completed: false, priority: 'medium', createdAt: new Date(Date.now() - 7200000) },
       { id: '3', text: '学习新技术', completed: true, priority: 'low', createdAt: new Date(Date.now() - 86400000) },

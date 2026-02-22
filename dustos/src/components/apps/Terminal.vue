@@ -163,7 +163,16 @@ function saveTheme() {
 }
 
 // 获取当前主题
-const theme = computed(() => terminalThemes[currentTheme.value])
+const theme = computed(() => terminalThemes[currentTheme.value] || {
+  background: '#1e1e2e',
+  foreground: '#cdd6f4',
+  error: '#f38ba8',
+  success: '#a6e3a1',
+  info: '#89b4fa',
+  prompt: '#f9e2af',
+  cursor: '#f5e0dc',
+  selection: '#45475a'
+})
 
 const virtualFileSystem = ref<VirtualFile[]>([
   { name: 'home', type: 'folder', content: '', parentId: null },
@@ -228,7 +237,9 @@ function executeCommand() {
   commandHistory.value.push(cmd)
   historyIndex.value = commandHistory.value.length
 
-  const [command, ...args] = parseCommand(cmd)
+  const parsedCommand = parseCommand(cmd)
+  const command = parsedCommand[0]
+  const args = parsedCommand[1]
   executeCommandInternal(command, args)
 
   currentInput.value = ''
@@ -392,11 +403,11 @@ function listFiles(args: string[]) {
     const rowLines: string[] = []
     for (let j = 0; j < cols; j++) {
       const index = i + j * rows
-      if (index < lines.length) {
+      if (index < lines.length && lines[index] !== undefined) {
         rowLines.push(lines[index])
       }
     }
-    addOutput('', rowLines.join(''))
+    addOutput('', rowLines.join('  '))
   }
 }
 
@@ -551,6 +562,11 @@ function removeFile(args: string[]) {
   }
 
   const file = virtualFileSystem.value[index]
+  if (!file) {
+    addOutput('', `文件不存在: ${fileName}`, 'error')
+    return
+  }
+
   if (file.type === 'folder') {
     const hasChildren = virtualFileSystem.value.some(f => f.parentId === file.name)
     if (hasChildren) {
@@ -610,19 +626,25 @@ function showHistory() {
 
 function historyUp() {
   if (commandHistory.value.length === 0) return
-  
+
   if (historyIndex.value > 0) {
     historyIndex.value--
-    currentInput.value = commandHistory.value[historyIndex.value]
+    const cmd = commandHistory.value[historyIndex.value]
+    if (cmd !== undefined) {
+      currentInput.value = cmd
+    }
   }
 }
 
 function historyDown() {
   if (commandHistory.value.length === 0) return
-  
+
   if (historyIndex.value < commandHistory.value.length - 1) {
     historyIndex.value++
-    currentInput.value = commandHistory.value[historyIndex.value]
+    const cmd = commandHistory.value[historyIndex.value]
+    if (cmd !== undefined) {
+      currentInput.value = cmd
+    }
   } else {
     historyIndex.value = commandHistory.value.length
     currentInput.value = ''
@@ -643,8 +665,11 @@ function handleTab(event: Event) {
   if (matches.length === 0) return
   
   if (matches.length === 1) {
-    inputParts[inputParts.length - 1] = matches[0].name + (matches[0].type === 'folder' ? '/' : '')
-    currentInput.value = inputParts.join(' ')
+    const match = matches[0]
+    if (match) {
+      inputParts[inputParts.length - 1] = match.name + (match.type === 'folder' ? '/' : '')
+      currentInput.value = inputParts.join(' ')
+    }
   } else {
     addOutput(currentPrompt.value, currentInput.value)
     const maxLength = Math.max(...matches.map(m => m.name.length))
@@ -660,7 +685,8 @@ function handleTheme(args: string[]) {
     addOutput('', '可用主题:', 'info')
     for (const [key, theme] of Object.entries(terminalThemes)) {
       const current = key === currentTheme.value ? ' [当前]' : ''
-      addOutput('', `  ${key.padEnd(15)} - ${theme.name}${current}`)
+      const themeName = theme?.name || key
+      addOutput('', `  ${key.padEnd(15)} - ${themeName}${current}`)
     }
     addOutput('', '', 'info')
     addOutput('', '用法: theme <主题名称>', 'info')
@@ -668,16 +694,18 @@ function handleTheme(args: string[]) {
     return
   }
 
-  const themeName = args[0].toLowerCase()
-  if (!terminalThemes[themeName]) {
+  const themeName = args[0]?.toLowerCase() ?? ''
+  const themeExists = themeName in terminalThemes
+  if (!themeExists) {
     addOutput('', `主题不存在: ${themeName}`, 'error')
     addOutput('', '输入 "theme" 查看可用主题', 'info')
     return
   }
 
+  const theme = (terminalThemes as any)[themeName]
   currentTheme.value = themeName
   saveTheme()
-  addOutput('', `主题已切换为: ${terminalThemes[themeName].name}`, 'success')
+  addOutput('', `主题已切换为: ${theme.name}`, 'success')
 }
 
 function scrollToEnd() {

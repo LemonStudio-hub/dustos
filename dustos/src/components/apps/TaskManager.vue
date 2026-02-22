@@ -237,7 +237,10 @@ function endProcess() {
   if (selectedProcess.value) {
     const index = processes.value.findIndex(p => p.id === selectedProcess.value)
     if (index > -1) {
-      processes.value[index].status = 'Terminated'
+      const process = processes.value[index]
+      if (process) {
+        process.status = 'Terminated'
+      }
       selectedProcess.value = null
     }
   }

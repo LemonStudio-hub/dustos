@@ -28,7 +28,7 @@
             'has-events': hasEvents(day.date)
           }"
           @click="selectDate(day.date)"
-          @dblclick="showEventModal(day.date)"
+          @dblclick="openEventModal(day.date)"
           :title="day.formattedDate"
         >
           <span class="day-number">{{ day.dayNumber }}</span>
@@ -41,7 +41,7 @@
 
     <div class="calendar-footer">
       <button class="today-button" @click="goToToday">今天</button>
-      <button class="event-button" @click="showEventModal(selectedDate)">
+      <button class="event-button" @click="openEventModal(selectedDate)">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         添加事件
       </button>
@@ -181,17 +181,17 @@ const calendarDays = computed((): CalendarDay[] => {
     const date = new Date(year, month - 1, day)
     days.push({
       dayNumber: day,
-      date: date.toISOString().split('T')[0],
+      date: date.toISOString().split('T')[0] || '',
       isCurrentMonth: false,
       isToday: false,
       formattedDate: `${date.getMonth() + 1}月${day}日`
     })
   }
-  
+
   // 当前月的日期
   for (let i = 1; i <= daysInMonth; i++) {
     const date = new Date(year, month, i)
-    const dateStr = date.toISOString().split('T')[0]
+    const dateStr = date.toISOString().split('T')[0] || ''
     days.push({
       dayNumber: i,
       date: dateStr,
@@ -200,14 +200,14 @@ const calendarDays = computed((): CalendarDay[] => {
       formattedDate: `${month + 1}月${i}日`
     })
   }
-  
+
   // 下个月的日期
   const remainingDays = 42 - days.length
   for (let i = 1; i <= remainingDays; i++) {
     const date = new Date(year, month + 1, i)
     days.push({
       dayNumber: i,
-      date: date.toISOString().split('T')[0],
+      date: date.toISOString().split('T')[0] || '',
       isCurrentMonth: false,
       isToday: false,
       formattedDate: `${date.getMonth() + 1}月${i}日`
@@ -239,12 +239,12 @@ const isSelected = (date: string): boolean => {
   return date === selectedDate.value
 }
 
-const showEventModal = (date?: string) => {
+const openEventModal = (date?: string) => {
   if (date) {
     selectedDate.value = date
   }
   newEvent.value = {
-    date: selectedDate.value,
+    date: selectedDate.value || '',
     time: '',
     title: '',
     description: ''
@@ -261,16 +261,16 @@ const saveEvent = () => {
     alert('请输入事件标题')
     return
   }
-  
+
   const event: Event = {
     id: Date.now().toString(),
-    date: newEvent.value.date,
-    time: newEvent.value.time,
+    date: newEvent.value.date || '',
+    time: newEvent.value.time || '',
     title: newEvent.value.title,
-    description: newEvent.value.description,
+    description: newEvent.value.description || '',
     completed: false
   }
-  
+
   events.value.push(event)
   saveEvents()
   closeEventModal()

@@ -197,7 +197,10 @@ function spawnFood() {
   
   if (validPositions.length > 0) {
     const randomIndex = Math.floor(Math.random() * validPositions.length)
-    food = validPositions[randomIndex]
+    const newFood = validPositions[randomIndex]
+    if (newFood) {
+      food = newFood
+    }
   }
 }
 
@@ -211,46 +214,51 @@ function gameLoop() {
 }
 
 function moveSnake() {
-  const head = { ...snake[0] }
-  
+  const head = snake[0]
+  if (!head) return
+
+  const newHead: Position = { x: head.x, y: head.y }
+
   switch (direction) {
     case 'up':
-      head.y--
+      newHead.y--
       break
     case 'down':
-      head.y++
+      newHead.y++
       break
     case 'left':
-      head.x--
+      newHead.x--
       break
     case 'right':
-      head.x++
+      newHead.x++
       break
   }
-  
+
   // 检查是否吃到食物
-  if (head.x === food.x && head.y === food.y) {
-    snake.unshift(head)
+  if (newHead.x === food.x && newHead.y === food.y) {
+    snake.unshift(newHead)
     score.value += 10
     spawnFood()
   } else {
-    snake.unshift(head)
+    snake.unshift(newHead)
     snake.pop()
   }
 }
 
 function checkCollision() {
   const head = snake[0]
-  
+  if (!head) return
+
   // 检查墙壁碰撞
   if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
     endGame()
     return
   }
-  
+
   // 检查自身碰撞
   for (let i = 1; i < snake.length; i++) {
-    if (head.x === snake[i].x && head.y === snake[i].y) {
+    const segment = snake[i]
+    if (segment && head.x === segment.x && head.y === segment.y) {
       endGame()
       return
     }
@@ -285,47 +293,50 @@ function changeDirection(newDirection: 'up' | 'down' | 'left' | 'right') {
 
 function draw() {
   if (!ctx || !canvasRef.value) return
-  
+
+  const context = ctx
+  const canvas = canvasRef.value
+
   // 清空画布
-  ctx.fillStyle = '#1a1a2e'
-  ctx.fillRect(0, 0, canvasRef.value.width, canvasRef.value.height)
-  
+  context.fillStyle = '#1a1a2e'
+  context.fillRect(0, 0, canvas.width, canvas.height)
+
   // 绘制网格
-  ctx.strokeStyle = '#2a2a4e'
-  ctx.lineWidth = 1
-  
+  context.strokeStyle = '#2a2a4e'
+  context.lineWidth = 1
+
   for (let x = 0; x <= GRID_SIZE; x++) {
-    ctx.beginPath()
-    ctx.moveTo(x * CELL_SIZE, 0)
-    ctx.lineTo(x * CELL_SIZE, canvasRef.value.height)
-    ctx.stroke()
+    context.beginPath()
+    context.moveTo(x * CELL_SIZE, 0)
+    context.lineTo(x * CELL_SIZE, canvas.height)
+    context.stroke()
   }
-  
+
   for (let y = 0; y <= GRID_SIZE; y++) {
-    ctx.beginPath()
-    ctx.moveTo(0, y * CELL_SIZE)
-    ctx.lineTo(canvasRef.value.width, y * CELL_SIZE)
-    ctx.stroke()
+    context.beginPath()
+    context.moveTo(0, y * CELL_SIZE)
+    context.lineTo(canvas.width, y * CELL_SIZE)
+    context.stroke()
   }
-  
+
   // 绘制食物
-  ctx.fillStyle = '#ef4444'
-  ctx.beginPath()
-  ctx.arc(
+  context.fillStyle = '#ef4444'
+  context.beginPath()
+  context.arc(
     food.x * CELL_SIZE + CELL_SIZE / 2,
     food.y * CELL_SIZE + CELL_SIZE / 2,
     CELL_SIZE / 2 - 4,
     0,
     Math.PI * 2
   )
-  ctx.fill()
-  
+  context.fill()
+
   // 绘制蛇
   snake.forEach((segment, index) => {
     const isHead = index === 0
-    
+
     // 渐变色
-    const gradient = ctx.createRadialGradient(
+    const gradient = context.createRadialGradient(
       segment.x * CELL_SIZE + CELL_SIZE / 2,
       segment.y * CELL_SIZE + CELL_SIZE / 2,
       0,
@@ -333,7 +344,7 @@ function draw() {
       segment.y * CELL_SIZE + CELL_SIZE / 2,
       CELL_SIZE / 2
     )
-    
+
     if (isHead) {
       gradient.addColorStop(0, '#22c55e')
       gradient.addColorStop(1, '#16a34a')
@@ -342,26 +353,26 @@ function draw() {
       gradient.addColorStop(0, `rgba(34, 197, 94, ${alpha})`)
       gradient.addColorStop(1, `rgba(22, 163, 74, ${alpha})`)
     }
-    
-    ctx.fillStyle = gradient
-    ctx.beginPath()
-    ctx.roundRect(
+
+    context.fillStyle = gradient
+    context.beginPath()
+    context.roundRect(
       segment.x * CELL_SIZE + 2,
       segment.y * CELL_SIZE + 2,
       CELL_SIZE - 4,
       CELL_SIZE - 4,
       6
     )
-    ctx.fill()
-    
+    context.fill()
+
     // 绘制眼睛（头部）
     if (isHead) {
-      ctx.fillStyle = 'white'
+      context.fillStyle = 'white'
       const eyeOffset = 6
       const eyeSize = 4
-      
+
       let eye1X, eye1Y, eye2X, eye2Y
-      
+
       switch (direction) {
         case 'up':
           eye1X = segment.x * CELL_SIZE + 8
@@ -388,17 +399,17 @@ function draw() {
           eye2Y = segment.y * CELL_SIZE + CELL_SIZE - 8
           break
       }
-      
-      ctx.beginPath()
-      ctx.arc(eye1X, eye1Y, eyeSize, 0, Math.PI * 2)
-      ctx.arc(eye2X, eye2Y, eyeSize, 0, Math.PI * 2)
-      ctx.fill()
-      
-      ctx.fillStyle = 'black'
-      ctx.beginPath()
-      ctx.arc(eye1X, eye1Y, 2, 0, Math.PI * 2)
-      ctx.arc(eye2X, eye2Y, 2, 0, Math.PI * 2)
-      ctx.fill()
+
+      context.beginPath()
+      context.arc(eye1X, eye1Y, eyeSize, 0, Math.PI * 2)
+      context.arc(eye2X, eye2Y, eyeSize, 0, Math.PI * 2)
+      context.fill()
+
+      context.fillStyle = 'black'
+      context.beginPath()
+      context.arc(eye1X, eye1Y, 2, 0, Math.PI * 2)
+      context.arc(eye2X, eye2Y, 2, 0, Math.PI * 2)
+      context.fill()
     }
   })
 }

@@ -187,12 +187,12 @@ function setupAudioListeners() {
 function playTrack(index: number) {
   currentIndex.value = index
   const track = playlist.value[index]
-  
+
   if (!audio.value) {
     initAudio()
   }
-  
-  if (audio.value) {
+
+  if (audio.value && track) {
     audio.value.src = track.url
     audio.value.volume = isMuted.value ? 0 : volume.value / 100
     audio.value.play()
@@ -270,8 +270,10 @@ function shuffleTracks() {
 
 function toggleRepeat() {
   const modes: Array<'none' | 'all' | 'one'> = ['none', 'all', 'one']
-  const currentIndex = modes.indexOf(repeatMode.value)
-  repeatMode.value = modes[(currentIndex + 1) % modes.length]
+  const currentMode = repeatMode.value ?? 'none'
+  const currentIndex = modes.indexOf(currentMode)
+  const newMode = modes[(currentIndex + 1) % modes.length]!
+  repeatMode.value = newMode
 }
 
 function seek(e: MouseEvent) {
@@ -323,9 +325,11 @@ function handleFileSelect(e: Event) {
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
+    if (!file) continue
+
     const url = URL.createObjectURL(file)
     playlist.value.push({
-      id: Date.now() + i,
+      id: String(Date.now() + i),
       title: file.name.replace(/\.[^/.]+$/, ''),
       artist: '未知艺术家',
       duration: 0,

@@ -7,7 +7,7 @@
  */
 export function getFileExtension(filename: string): string {
   const parts = filename.split('.')
-  return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : ''
+  return parts.length > 1 ? (parts[parts.length - 1] ?? '').toLowerCase() : ''
 }
 
 /**
@@ -158,16 +158,4 @@ export function getBasename(path: string): string {
   const normalized = normalizePath(path)
   const parts = normalized.split('/').filter(p => p)
   return parts[parts.length - 1] || ''
-}
-
-/**
- * 检查是否为有效 URL
- */
-export function isValidUrl(url: string): boolean {
-  try {
-    new URL(url)
-    return true
-  } catch {
-    return false
-  }
 }

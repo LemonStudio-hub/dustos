@@ -146,7 +146,7 @@
             >
               <span class="lap-number">#{{ index + 1 }}</span>
               <span class="lap-time">{{ formatStopwatchTime(lap) }}</span>
-              <span class="lap-total">{{ formatStopwatchTime(index === 0 ? lap : lap - laps[index - 1]) }}</span>
+              <span class="lap-total">{{ formatStopwatchTime(index === 0 ? lap : lap - (laps[index - 1] ?? 0)) }}</span>
             </div>
           </div>
         </div>
@@ -272,7 +272,9 @@ function updateTime() {
 
 function checkAlarms(hours: number, minutes: number, seconds: number) {
   const currentTimeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
-  const currentDay = weekDays[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1]
+  const now = new Date()
+  const dayIndex = now.getDay() === 0 ? 6 : now.getDay() - 1
+  const currentDay = weekDays[dayIndex] ?? '一'
   
   alarms.value.forEach(alarm => {
     if (alarm.active && alarm.time === currentTimeStr && seconds === 0) {
@@ -291,7 +293,10 @@ function checkAlarms(hours: number, minutes: number, seconds: number) {
 }
 
 function toggleAlarm(index: number) {
-  alarms.value[index].active = !alarms.value[index].active
+  const alarm = alarms.value[index]
+  if (alarm) {
+    alarm.active = !alarm.active
+  }
 }
 
 function deleteAlarm(index: number) {

@@ -106,7 +106,7 @@ const props = defineProps<{
   isActive: boolean
 }>()
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'open'])
 
 const desktopStore = useDesktopStore()
 const systemStore = useSystemStore()
@@ -187,25 +187,29 @@ function handleKeydown(e: KeyboardEvent) {
     return
   }
   
-  if (e.key === 'Enter' && currentResults[selectedIndex.value]) {
-    e.preventDefault()
-    selectResult(currentResults[selectedIndex.value])
+  if (e.key === 'Enter') {
+    const selectedItem = currentResults[selectedIndex.value]
+    if (selectedItem) {
+      e.preventDefault()
+      selectResult(selectedItem)
+    }
     return
   }
   
   if (e.key === 'Tab') {
     e.preventDefault()
-    const tabIds = ['apps', 'files', 'settings'] as const
+    const tabIds: readonly ['apps', 'files', 'settings'] = ['apps', 'files', 'settings']
     const currentIndex = tabIds.indexOf(activeTab.value)
     const nextIndex = (currentIndex + 1) % tabIds.length
-    activeTab.value = tabIds[nextIndex]
+    activeTab.value = tabIds[nextIndex] as 'apps' | 'files' | 'settings'
     selectedIndex.value = 0
     return
   }
 }
 
 function getCurrentResults(): SearchItem[] {
-  switch (activeTab.value) {
+  const tab = activeTab.value ?? 'apps'
+  switch (tab) {
     case 'apps': return appResults.value
     case 'files': return fileResults.value
     case 'settings': return settingResults.value
@@ -218,10 +222,10 @@ function selectResult(item: SearchItem) {
 
   switch (activeTab.value) {
     case 'apps':
-      openApp(item as unknown as DesktopIcon)
+      openApp(item)
       break
     case 'files':
-      openFile(item as SearchResult)
+      openFile(item)
       break
     case 'settings':
       openSetting(item)
@@ -229,12 +233,12 @@ function selectResult(item: SearchItem) {
   }
 }
 
-function openApp(icon: DesktopIcon) {
-  desktopStore.openWindow(icon)
+function openApp(icon: SearchItem) {
+  desktopStore.openWindow(icon as unknown as DesktopIcon)
   close()
 }
 
-function openFile(file: SearchResult) {
+function openFile(file: SearchItem) {
   // 打开文件管理器并定位到文件
   const fileManagerIcon = desktopStore.desktopIcons.find(i => i.component === 'FileManager')
   if (fileManagerIcon) {

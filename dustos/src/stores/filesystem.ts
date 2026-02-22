@@ -184,13 +184,14 @@ export const useFilesystemStore = defineStore('filesystem', () => {
     if (index === -1) return false
     
     const item = files[index]
-    
+    if (!item) return false
+
     // 如果是文件夹，删除其内容
     if (item.type === 'folder') {
       const folderPath = currentPath.value === '/' ? '/' + item.name : currentPath.value + '/' + item.name
       filesystem.delete(folderPath)
     }
-    
+
     files.splice(index, 1)
     
     // 更新搜索索引
@@ -211,10 +212,12 @@ export const useFilesystemStore = defineStore('filesystem', () => {
     if (files.some(f => f.name === newName && f.id !== id)) return false
     
     const item = files[index]
+    if (!item) return false
+
     const oldName = item.name
     item.name = newName
     item.modified = new Date()
-    
+
     // 如果是文件夹，更新文件系统中的路径
     if (item.type === 'folder') {
       const oldPath = currentPath.value === '/' ? '/' + oldName : currentPath.value + '/' + oldName

@@ -249,7 +249,7 @@ function navigateTo(path: string) {
 function goBack() {
   if (canGoBack.value) {
     pathHistoryIndex.value--
-    currentPath.value = pathHistory.value[pathHistoryIndex.value]
+    currentPath.value = pathHistory.value[pathHistoryIndex.value] || '/'
     fs.changePath(currentPath.value)
     selectedItems.value = []
   }
@@ -258,14 +258,14 @@ function goBack() {
 function goForward() {
   if (canGoForward.value) {
     pathHistoryIndex.value++
-    currentPath.value = pathHistory.value[pathHistoryIndex.value]
+    currentPath.value = pathHistory.value[pathHistoryIndex.value] || '/'
     fs.changePath(currentPath.value)
     selectedItems.value = []
   }
 }
 
 function goUp() {
-  const parentPath = fs.getParentPath()
+  const parentPath = fs.getParentPath() || '/'
   navigateTo(parentPath)
 }
 
@@ -328,12 +328,13 @@ function renameSelected() {
 
 function deleteSelected() {
   if (selectedItems.value.length > 0) {
-    if (confirm(`确定要删除 ${selectedItems.value.length} 个项目吗？`)) {
+    const count = selectedItems.value.length
+    if (confirm(`确定要删除 ${count} 个项目吗？`)) {
       for (const id of selectedItems.value) {
         fs.deleteItem(id)
       }
       selectedItems.value = []
-      systemStore.addNotification('删除完成', `已删除 ${selectedItems.value.length} 个项目`)
+      systemStore.addNotification('删除完成', `已删除 ${count} 个项目`)
     }
   }
 }
@@ -382,7 +383,8 @@ function confirmModal() {
     }
   } else if (action === 'rename') {
     if (selectedItems.value.length === 1) {
-      if (fs.renameItem(selectedItems.value[0], value)) {
+      const id = selectedItems.value[0]
+      if (id && fs.renameItem(id, value)) {
         systemStore.addNotification('重命名成功', `已重命名为 "${value}"`)
       } else {
         systemStore.addNotification('重命名失败', '名称已存在或无效')

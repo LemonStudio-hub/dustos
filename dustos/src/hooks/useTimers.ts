@@ -2,7 +2,7 @@
  * 使用定时器 Hook
  */
 
-import { onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 export function useInterval(callback: () => void, delay: number | null) {
   const intervalId = ref<number | null>(null)

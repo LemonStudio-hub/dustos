@@ -274,7 +274,8 @@ function updateCursorPosition() {
   const text = textarea.value.substring(0, textarea.selectionStart)
   const lines = text.split('\n')
   currentLine.value = lines.length
-  currentCol.value = lines[lines.length - 1].length + 1
+  const lastLine = lines[lines.length - 1]
+  currentCol.value = (lastLine ? lastLine.length : 0) + 1
 }
 
 function addToHistory() {
@@ -294,16 +295,22 @@ const canRedo = computed(() => historyIndex.value < history.value.length - 1)
 function undo() {
   if (canUndo.value) {
     historyIndex.value--
-    content.value = history.value[historyIndex.value]
-    isModified.value = true
+    const historyItem = history.value[historyIndex.value]
+    if (historyItem !== undefined) {
+      content.value = historyItem
+      isModified.value = true
+    }
   }
 }
 
 function redo() {
   if (canRedo.value) {
     historyIndex.value++
-    content.value = history.value[historyIndex.value]
-    isModified.value = true
+    const historyItem = history.value[historyIndex.value]
+    if (historyItem !== undefined) {
+      content.value = historyItem
+      isModified.value = true
+    }
   }
 }
 

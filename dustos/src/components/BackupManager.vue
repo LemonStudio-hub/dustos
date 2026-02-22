@@ -14,7 +14,7 @@
         <div class="status-info">
           <div class="status-title">{{ backupInfo.exists ? '有可用备份' : '无备份' }}</div>
           <div class="status-subtitle">
-            {{ backupInfo.exists ? formatBackupDate(backupInfo.timestamp) : '创建您的第一个备份' }}
+            {{ backupInfo.exists && backupInfo.timestamp ? formatBackupDate(backupInfo.timestamp) : '创建您的第一个备份' }}
           </div>
         </div>
       </div>
@@ -169,7 +169,13 @@ async function restoreFromStorage() {
 
   isRestoring.value = true
   try {
-    const success = await BackupManager.restoreBackup(await BackupManager.loadBackup()!)
+    const backupData = await BackupManager.loadBackup()
+if (!backupData) {
+  systemStore.addNotification('恢复失败', '未找到备份文件')
+  isRestoring.value = false
+  return
+}
+const success = await BackupManager.restoreBackup(backupData)
     if (success) {
       systemStore.addNotification('恢复成功', '系统已恢复到备份状态')
       setTimeout(() => {

@@ -148,6 +148,7 @@ export const useSystemStore = defineStore('system', () => {
 
   function getCurrentWallpaper() {
     const wp = wallpapers[wallpaper.value]
+    if (!wp) return ''
     return isDarkMode.value ? wp.dark : wp.light
   }
 

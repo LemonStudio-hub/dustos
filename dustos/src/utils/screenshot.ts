@@ -17,9 +17,8 @@ export async function captureScreen(options: ScreenshotOptions = {}): Promise<vo
     const stream = await navigator.mediaDevices.getDisplayMedia({
       video: {
         displaySurface: 'monitor',
-        frameRate: 60,
-        cursor: 'always'
-      }
+        frameRate: 60
+      } as MediaTrackConstraints
     })
     
     const video = document.createElement('video')

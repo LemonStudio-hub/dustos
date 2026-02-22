@@ -217,8 +217,12 @@ function switchFile(index: number) {
     currentFile.value.content = currentCode.value
   }
   currentFileIndex.value = index
-  currentCode.value = currentFile.value.content
-  currentLanguage.value = currentFile.value.language
+  if (currentFile.value) {
+    currentCode.value = currentFile.value.content
+    currentLanguage.value = currentFile.value.language
+  } else {
+    currentCode.value = ''
+  }
 }
 
 function closeFile(index: number) {
@@ -265,7 +269,8 @@ function updateCursorPosition() {
   const textBefore = currentCode.value.substring(0, pos)
   const lines = textBefore.split('\n')
   currentLine.value = lines.length
-  currentColumn.value = lines[lines.length - 1].length + 1
+  const lastLine = lines[lines.length - 1] || ''
+  currentColumn.value = lastLine.length + 1
 }
 
 function syncScroll() {
@@ -415,7 +420,7 @@ greet('World');
   modified: false
 }]
 
-currentCode.value = files.value[0].content
+currentCode.value = files.value[0]?.content || ''
 </script>
 
 <style scoped>

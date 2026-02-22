@@ -24,6 +24,9 @@ export interface WindowState {
   prevHeight?: number
 }
 
+// DesktopWindow 是 WindowState 的别名，用于避免与全局 Window 接口冲突
+export type DesktopWindow = WindowState
+
 export interface WindowSnapshot {
   id: string
   name: string
@@ -230,12 +233,16 @@ export interface SearchItem {
 export interface Shortcut {
   id: string
   name: string
-  keys: string
-  action: string
-  enabled: boolean
+  description?: string
+  keys: string[]
+  action?: string
+  enabled?: boolean
+  icon?: string
+  defaultKeys?: string[]
 }
 
 export interface ShortcutCategory {
+  id: string
   name: string
   shortcuts: Shortcut[]
 }

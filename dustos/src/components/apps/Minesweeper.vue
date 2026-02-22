@@ -165,17 +165,19 @@ function placeMines(firstClickIndex: number) {
   let placedMines = 0
   while (placedMines < totalMines.value) {
     const randomIndex = Math.floor(Math.random() * totalCells)
-    if (!safeZone.has(randomIndex) && !grid.value[randomIndex].mine) {
-      grid.value[randomIndex].mine = true
+    const cell = grid.value[randomIndex]
+    if (!safeZone.has(randomIndex) && cell && !cell.mine) {
+      cell.mine = true
       placedMines++
     }
   }
   
   // 计算邻居地雷数
   for (let i = 0; i < totalCells; i++) {
-    if (!grid.value[i].mine) {
+    const cell = grid.value[i]
+    if (cell && !cell.mine) {
       const neighbors = getNeighbors(i)
-      grid.value[i].neighborCount = neighbors.filter(n => n.mine).length
+      cell.neighborCount = neighbors.filter(n => n.mine).length
     }
   }
 }
@@ -193,9 +195,12 @@ function getNeighbors(index: number): Cell[] {
       const newCol = col + dc
       const newIndex = newRow * gridWidth.value + newCol
       
-      if (newRow >= 0 && newRow < gridHeight.value && 
+      if (newRow >= 0 && newRow < gridHeight.value &&
           newCol >= 0 && newCol < gridWidth.value) {
-        neighbors.push(grid.value[newIndex])
+        const cell = grid.value[newIndex]
+        if (cell) {
+          neighbors.push(cell)
+        }
       }
     }
   }

@@ -186,7 +186,10 @@ function simulateWeatherData() {
   ]
   
   const randomIndex = Math.floor(Math.random() * weathers.length)
-  currentWeather.value = { ...weathers[randomIndex] }
+  const weather = weathers[randomIndex]
+  if (weather) {
+    currentWeather.value = weather
+  }
 }
 
 onMounted(() => {

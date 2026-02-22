@@ -87,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 
 interface Recording {
   id: string
@@ -139,7 +139,8 @@ async function startRecording() {
     const source = audioContext.createMediaStreamSource(stream)
     source.connect(analyser)
     analyser.fftSize = 256
-    dataArray = new Uint8Array(analyser.frequencyBinCount)
+    const buffer = new ArrayBuffer(analyser.frequencyBinCount)
+    dataArray = new Uint8Array(buffer)
     
     mediaRecorder = new MediaRecorder(stream)
     audioChunks = []
@@ -282,7 +283,7 @@ function drawWaveform() {
     
     animationId = requestAnimationFrame(draw)
     
-    analyser!.getByteFrequencyData(dataArray!)
+    analyser!.getByteFrequencyData(dataArray! as any)
     
     ctx.fillStyle = '#f5f5f5'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -292,7 +293,8 @@ function drawWaveform() {
     let x = 0
     
     for (let i = 0; i < dataArray!.length; i++) {
-      barHeight = (dataArray![i] / 255) * canvas.height
+      const value = dataArray![i] ?? 0
+      barHeight = (value / 255) * canvas.height
       
       const gradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - barHeight)
       gradient.addColorStop(0, '#667eea')

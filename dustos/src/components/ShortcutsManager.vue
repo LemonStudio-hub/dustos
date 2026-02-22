@@ -81,21 +81,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import type { Shortcut, ShortcutCategory } from '@/types'
 
-interface Shortcut {
-  id: string
-  name: string
-  description: string
-  keys: string[]
-  icon: string
-  defaultKeys: string[]
-}
-
-interface ShortcutCategory {
-  id: string
-  name: string
-  shortcuts: Shortcut[]
-}
-
 const editingShortcut = ref<string | null>(null)
 const newKeys = ref('')
 const keyInput = ref<HTMLInputElement | null>(null)
@@ -112,7 +97,9 @@ const shortcutCategories = ref<ShortcutCategory[]>([
         description: '关闭当前活动窗口',
         keys: ['Alt', 'F4'],
         icon: '✕',
-        defaultKeys: ['Alt', 'F4']
+        defaultKeys: ['Alt', 'F4'],
+        action: 'close-window',
+        enabled: true
       },
       {
         id: 'minimize-window',
@@ -120,7 +107,9 @@ const shortcutCategories = ref<ShortcutCategory[]>([
         description: '最小化当前窗口',
         keys: ['Meta', 'M'],
         icon: '─',
-        defaultKeys: ['Meta', 'M']
+        defaultKeys: ['Meta', 'M'],
+        action: 'minimize-window',
+        enabled: true
       },
       {
         id: 'maximize-window',
@@ -295,7 +284,7 @@ function resetToDefaults() {
   if (confirm('确定要重置所有快捷键为默认值吗？')) {
     shortcutCategories.value.forEach(category => {
       category.shortcuts.forEach(shortcut => {
-        shortcut.keys = [...shortcut.defaultKeys]
+        shortcut.keys = shortcut.defaultKeys ? [...shortcut.defaultKeys] : []
       })
     })
     saveShortcuts()
@@ -344,7 +333,7 @@ function loadShortcuts() {
           categoryConfig.shortcuts.forEach((shortcutConfig: Shortcut) => {
             const shortcut = category.shortcuts.find(s => s.id === shortcutConfig.id)
             if (shortcut) {
-              shortcut.keys = shortcutConfig.keys
+              shortcut.keys = shortcutConfig.keys || []
             }
           })
         }

@@ -7,9 +7,9 @@ import type { FileItem, SystemSettings, ShortcutCategory } from '@/types'
 export interface BackupData {
   version: string
   timestamp: number
-  filesystem: Map<string, FileItem[]>
-  systemSettings: SystemSettings
-  shortcuts: ShortcutCategory[]
+  filesystem: Map<string, FileItem[]> | null
+  systemSettings: Partial<SystemSettings>
+  shortcuts: ShortcutCategory[] | null
   appData: Record<string, unknown>
 }
 
@@ -174,40 +174,72 @@ export class BackupManager {
   private static getFilesystemData(): Map<string, FileItem[]> | null {
     // 从 filesystem store 获取数据
     const filesystemData = localStorage.getItem('filesystem')
-    return filesystemData ? new Map(JSON.parse(filesystemData)) : null
+    if (!filesystemData) return null
+    try {
+      return new Map(JSON.parse(filesystemData))
+    } catch {
+      return null
+    }
   }
 
   /**
    * 获取系统设置
    */
   private static getSystemSettings(): Partial<SystemSettings> {
-    return {
-      darkMode: localStorage.getItem('dustos_darkMode'),
-      volume: localStorage.getItem('dustos_volume'),
-      wifi: localStorage.getItem('dustos_wifi'),
-      wallpaper: localStorage.getItem('dustos_wallpaper'),
-      soundEnabled: localStorage.getItem('dustos_soundEnabled')
+    const darkModeStr = localStorage.getItem('dustos_darkMode')
+    const volumeStr = localStorage.getItem('dustos_volume')
+    const wifiStr = localStorage.getItem('dustos_wifi')
+    const wallpaperStr = localStorage.getItem('dustos_wallpaper')
+    const soundEnabledStr = localStorage.getItem('dustos_soundEnabled')
+
+    const settings: Partial<SystemSettings> = {}
+    if (darkModeStr !== null) {
+      settings.isDarkMode = darkModeStr === 'true'
     }
+    if (volumeStr !== null) {
+      settings.volume = parseInt(volumeStr, 10)
+    }
+    if (wifiStr !== null) {
+      settings.wifiConnected = wifiStr === 'true'
+    }
+    if (wallpaperStr !== null) {
+      settings.wallpaper = parseInt(wallpaperStr, 10)
+    }
+    if (soundEnabledStr !== null) {
+      settings.systemSoundsEnabled = soundEnabledStr === 'true'
+    }
+    return settings
   }
 
   /**
    * 获取快捷键配置
    */
   private static getShortcuts(): ShortcutCategory[] | null {
-    return localStorage.getItem('dustos_shortcuts')
+    const shortcutsStr = localStorage.getItem('dustos_shortcuts')
+    if (!shortcutsStr) return null
+    try {
+      return JSON.parse(shortcutsStr) as ShortcutCategory[]
+    } catch {
+      return null
+    }
   }
 
   /**
    * 获取应用数据
    */
   private static getAppData(): Record<string, unknown> {
-    return {
-      notepad: localStorage.getItem('notepad_content'),
-      notepadFilename: localStorage.getItem('notepad_filename'),
-      calendarEvents: localStorage.getItem('calendar-events'),
-      bookmarks: localStorage.getItem('browser-bookmarks'),
-      recentApps: localStorage.getItem('recent-apps')
-    }
+    const appData: Record<string, unknown> = {}
+    const notepad = localStorage.getItem('notepad_content')
+    if (notepad !== null) appData.notepad = notepad
+    const notepadFilename = localStorage.getItem('notepad_filename')
+    if (notepadFilename !== null) appData.notepadFilename = notepadFilename
+    const calendarEvents = localStorage.getItem('calendar-events')
+    if (calendarEvents !== null) appData.calendarEvents = calendarEvents
+    const bookmarks = localStorage.getItem('browser-bookmarks')
+    if (bookmarks !== null) appData.bookmarks = bookmarks
+    const recentApps = localStorage.getItem('recent-apps')
+    if (recentApps !== null) appData.recentApps = recentApps
+    return appData
   }
 
   /**
@@ -223,20 +255,20 @@ export class BackupManager {
    * 恢复系统设置
    */
   private static restoreSystemSettings(settings: Partial<SystemSettings>): void {
-    if (settings.darkMode !== undefined) {
-      localStorage.setItem('dustos_darkMode', settings.darkMode)
+    if (settings.isDarkMode !== undefined) {
+      localStorage.setItem('dustos_darkMode', settings.isDarkMode.toString())
     }
     if (settings.volume !== undefined) {
-      localStorage.setItem('dustos_volume', settings.volume)
+      localStorage.setItem('dustos_volume', settings.volume.toString())
     }
-    if (settings.wifi !== undefined) {
-      localStorage.setItem('dustos_wifi', settings.wifi)
+    if (settings.wifiConnected !== undefined) {
+      localStorage.setItem('dustos_wifi', settings.wifiConnected.toString())
     }
     if (settings.wallpaper !== undefined) {
-      localStorage.setItem('dustos_wallpaper', settings.wallpaper)
+      localStorage.setItem('dustos_wallpaper', settings.wallpaper.toString())
     }
-    if (settings.soundEnabled !== undefined) {
-      localStorage.setItem('dustos_soundEnabled', settings.soundEnabled)
+    if (settings.systemSoundsEnabled !== undefined) {
+      localStorage.setItem('dustos_soundEnabled', settings.systemSoundsEnabled.toString())
     }
   }
 
@@ -244,28 +276,26 @@ export class BackupManager {
    * 恢复快捷键
    */
   private static restoreShortcuts(shortcuts: ShortcutCategory[]): void {
-    if (shortcuts) {
-      localStorage.setItem('dustos_shortcuts', shortcuts)
-    }
+    localStorage.setItem('dustos_shortcuts', JSON.stringify(shortcuts))
   }
 
   /**
    * 恢复应用数据
    */
   private static restoreAppData(appData: Record<string, unknown>): void {
-    if (appData.notepad !== undefined) {
+    if (appData.notepad !== undefined && typeof appData.notepad === 'string') {
       localStorage.setItem('notepad_content', appData.notepad)
     }
-    if (appData.notepadFilename !== undefined) {
+    if (appData.notepadFilename !== undefined && typeof appData.notepadFilename === 'string') {
       localStorage.setItem('notepad_filename', appData.notepadFilename)
     }
-    if (appData.calendarEvents !== undefined) {
+    if (appData.calendarEvents !== undefined && typeof appData.calendarEvents === 'string') {
       localStorage.setItem('calendar-events', appData.calendarEvents)
     }
-    if (appData.bookmarks !== undefined) {
+    if (appData.bookmarks !== undefined && typeof appData.bookmarks === 'string') {
       localStorage.setItem('browser-bookmarks', appData.bookmarks)
     }
-    if (appData.recentApps !== undefined) {
+    if (appData.recentApps !== undefined && typeof appData.recentApps === 'string') {
       localStorage.setItem('recent-apps', appData.recentApps)
     }
   }

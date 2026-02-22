@@ -306,7 +306,10 @@ const sections = [
 
 function selectWallpaper(id: number) {
   systemStore.changeWallpaper(id)
-  systemStore.addNotification('更换壁纸', `已切换到：${systemStore.wallpapers[id].name}`)
+  const wallpaper = systemStore.wallpapers[id]
+  if (wallpaper) {
+    systemStore.addNotification('更换壁纸', `已切换到：${wallpaper.name}`)
+  }
 }
 
 function increaseVolume() {

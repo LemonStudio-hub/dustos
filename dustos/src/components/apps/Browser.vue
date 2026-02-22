@@ -75,8 +75,8 @@
               class="bookmark-item"
               @click="navigateTo(bookmark.url)"
             >
-              <span>{{ bookmark.icon }}</span>
-              <span>{{ bookmark.name }}</span>
+              <span>{{ bookmark.favicon || '📌' }}</span>
+              <span>{{ bookmark.title }}</span>
               <button class="remove-bookmark" @click.stop="removeBookmark(bookmark.id)">✕</button>
             </div>
           </div>
@@ -144,7 +144,7 @@ const securityIcon = computed(() => {
 })
 
 let showZoomIndicator = ref(false)
-let zoomTimeout: number
+let zoomTimeout: ReturnType<typeof setTimeout> | null = null
 
 function navigate() {
   let url = currentUrl.value.trim()
@@ -203,7 +203,7 @@ function onLoad() {
 function goBack() {
   if (canGoBack.value) {
     historyIndex.value--
-    currentUrl.value = history.value[historyIndex.value]
+    currentUrl.value = history.value[historyIndex.value] || ''
     loadPage()
   }
 }
@@ -211,7 +211,7 @@ function goBack() {
 function goForward() {
   if (canGoForward.value) {
     historyIndex.value++
-    currentUrl.value = history.value[historyIndex.value]
+    currentUrl.value = history.value[historyIndex.value] || ''
     loadPage()
   }
 }
@@ -235,14 +235,15 @@ function toggleBookmark() {
 
 function addBookmark() {
   bookmarks.value.push({
-    id: Date.now(),
-    name: currentUrl.value,
+    id: Date.now().toString(),
+    title: currentUrl.value,
     url: currentUrl.value,
-    icon: '⭐',
+    favicon: '⭐',
+    createdAt: Date.now()
   })
 }
 
-function removeBookmark(id: number) {
+function removeBookmark(id: string) {
   const index = bookmarks.value.findIndex(b => b.id === id)
   if (index > -1) {
     bookmarks.value.splice(index, 1)
@@ -273,9 +274,12 @@ function zoomReset() {
 
 function showZoomIndicatorHandler() {
   showZoomIndicator.value = true
-  clearTimeout(zoomTimeout)
+  if (zoomTimeout !== null) {
+    clearTimeout(zoomTimeout)
+  }
   zoomTimeout = window.setTimeout(() => {
     showZoomIndicator.value = false
+    zoomTimeout = null
   }, 1500)
 }
 
