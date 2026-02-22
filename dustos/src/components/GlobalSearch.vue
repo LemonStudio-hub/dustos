@@ -100,6 +100,7 @@ import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useDesktopStore } from '@/stores/desktop'
 import { useSystemStore } from '@/stores/system'
 import { useFilesystemStore } from '@/stores/filesystem'
+import type { DesktopIcon, SearchResult, SearchItem } from '@/types'
 
 const props = defineProps<{
   isActive: boolean
@@ -117,40 +118,43 @@ const selectedIndex = ref(0)
 const searchInput = ref<HTMLInputElement | null>(null)
 
 const tabs = [
-  { id: 'apps', name: '应用' },
-  { id: 'files', name: '文件' },
-  { id: 'settings', name: '设置' }
+  { id: 'apps' as const, name: '应用' },
+  { id: 'files' as const, name: '文件' },
+  { id: 'settings' as const, name: '设置' }
 ]
 
 const searchIcon = computed(() => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>')
 
-const appResults = computed(() => {
+const appResults = computed<SearchItem[]>(() => {
   if (!searchQuery.value) return []
   const query = searchQuery.value.toLowerCase()
   return desktopStore.desktopIcons.filter(icon =>
     icon.name.toLowerCase().includes(query)
-  )
+  ).map(icon => ({
+    ...icon,
+    type: 'app' as const
+  }))
 })
 
-const fileResults = computed(() => {
+const fileResults = computed<SearchItem[]>(() => {
   if (!searchQuery.value) return []
   const query = searchQuery.value.toLowerCase()
   return filesystemStore.searchFiles(query)
 })
 
-const settingResults = computed(() => {
+const settingResults = computed<SearchItem[]>(() => {
   if (!searchQuery.value) return []
   const query = searchQuery.value.toLowerCase()
-  const settings = [
-    { id: 'darkMode', name: '深色模式', description: '切换深色主题', icon: '🌙' },
-    { id: 'wallpaper', name: '壁纸', description: '更换桌面壁纸', icon: '🖼️' },
-    { id: 'volume', name: '音量', description: '调整系统音量', icon: '🔊' },
-    { id: 'sound', name: '音效', description: '系统音效设置', icon: '🔔' },
-    { id: 'wifi', name: 'WiFi', description: '网络连接', icon: '📶' },
-    { id: 'lock', name: '锁屏', description: '锁定屏幕', icon: '🔒' },
+  const settings: SearchItem[] = [
+    { id: 'darkMode', name: '深色模式', description: '切换深色主题', icon: '🌙', type: 'setting' },
+    { id: 'wallpaper', name: '壁纸', description: '更换桌面壁纸', icon: '🖼️', type: 'setting' },
+    { id: 'volume', name: '音量', description: '调整系统音量', icon: '🔊', type: 'setting' },
+    { id: 'sound', name: '音效', description: '系统音效设置', icon: '🔔', type: 'setting' },
+    { id: 'wifi', name: 'WiFi', description: '网络连接', icon: '📶', type: 'setting' },
+    { id: 'lock', name: '锁屏', description: '锁定屏幕', icon: '🔒', type: 'setting' },
   ]
   return settings.filter(s =>
-    s.name.toLowerCase().includes(query) || s.description.toLowerCase().includes(query)
+    s.name.toLowerCase().includes(query) || (s.description && s.description.toLowerCase().includes(query))
   )
 })
 
@@ -200,7 +204,7 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-function getCurrentResults() {
+function getCurrentResults(): SearchItem[] {
   switch (activeTab.value) {
     case 'apps': return appResults.value
     case 'files': return fileResults.value
@@ -209,13 +213,15 @@ function getCurrentResults() {
   }
 }
 
-function selectResult(item: any) {
+function selectResult(item: SearchItem) {
+  if (!item) return
+
   switch (activeTab.value) {
     case 'apps':
-      openApp(item)
+      openApp(item as unknown as DesktopIcon)
       break
     case 'files':
-      openFile(item)
+      openFile(item as SearchResult)
       break
     case 'settings':
       openSetting(item)
@@ -223,12 +229,12 @@ function selectResult(item: any) {
   }
 }
 
-function openApp(icon: any) {
+function openApp(icon: DesktopIcon) {
   desktopStore.openWindow(icon)
   close()
 }
 
-function openFile(file: any) {
+function openFile(file: SearchResult) {
   // 打开文件管理器并定位到文件
   const fileManagerIcon = desktopStore.desktopIcons.find(i => i.component === 'FileManager')
   if (fileManagerIcon) {
@@ -237,7 +243,7 @@ function openFile(file: any) {
   close()
 }
 
-function openSetting(setting: any) {
+function openSetting(setting: SearchItem) {
   switch (setting.id) {
     case 'darkMode':
       systemStore.toggleDarkMode()

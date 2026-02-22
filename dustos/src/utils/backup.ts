@@ -2,13 +2,15 @@
  * 系统备份和恢复工具
  */
 
+import type { FileItem, SystemSettings, ShortcutCategory } from '@/types'
+
 export interface BackupData {
   version: string
   timestamp: number
-  filesystem: any
-  systemSettings: any
-  shortcuts: any
-  appData: any
+  filesystem: Map<string, FileItem[]>
+  systemSettings: SystemSettings
+  shortcuts: ShortcutCategory[]
+  appData: Record<string, unknown>
 }
 
 export class BackupManager {
@@ -169,16 +171,16 @@ export class BackupManager {
   /**
    * 获取文件系统数据
    */
-  private static getFilesystemData(): any {
+  private static getFilesystemData(): Map<string, FileItem[]> | null {
     // 从 filesystem store 获取数据
     const filesystemData = localStorage.getItem('filesystem')
-    return filesystemData ? JSON.parse(filesystemData) : null
+    return filesystemData ? new Map(JSON.parse(filesystemData)) : null
   }
 
   /**
    * 获取系统设置
    */
-  private static getSystemSettings(): any {
+  private static getSystemSettings(): Partial<SystemSettings> {
     return {
       darkMode: localStorage.getItem('dustos_darkMode'),
       volume: localStorage.getItem('dustos_volume'),
@@ -191,14 +193,14 @@ export class BackupManager {
   /**
    * 获取快捷键配置
    */
-  private static getShortcuts(): any {
+  private static getShortcuts(): ShortcutCategory[] | null {
     return localStorage.getItem('dustos_shortcuts')
   }
 
   /**
    * 获取应用数据
    */
-  private static getAppData(): any {
+  private static getAppData(): Record<string, unknown> {
     return {
       notepad: localStorage.getItem('notepad_content'),
       notepadFilename: localStorage.getItem('notepad_filename'),
@@ -211,16 +213,16 @@ export class BackupManager {
   /**
    * 恢复文件系统
    */
-  private static restoreFilesystem(filesystemData: any): void {
+  private static restoreFilesystem(filesystemData: Map<string, FileItem[]>): void {
     if (filesystemData) {
-      localStorage.setItem('filesystem', JSON.stringify(filesystemData))
+      localStorage.setItem('filesystem', JSON.stringify([...filesystemData]))
     }
   }
 
   /**
    * 恢复系统设置
    */
-  private static restoreSystemSettings(settings: any): void {
+  private static restoreSystemSettings(settings: Partial<SystemSettings>): void {
     if (settings.darkMode !== undefined) {
       localStorage.setItem('dustos_darkMode', settings.darkMode)
     }
@@ -241,7 +243,7 @@ export class BackupManager {
   /**
    * 恢复快捷键
    */
-  private static restoreShortcuts(shortcuts: any): void {
+  private static restoreShortcuts(shortcuts: ShortcutCategory[]): void {
     if (shortcuts) {
       localStorage.setItem('dustos_shortcuts', shortcuts)
     }
@@ -250,7 +252,7 @@ export class BackupManager {
   /**
    * 恢复应用数据
    */
-  private static restoreAppData(appData: any): void {
+  private static restoreAppData(appData: Record<string, unknown>): void {
     if (appData.notepad !== undefined) {
       localStorage.setItem('notepad_content', appData.notepad)
     }

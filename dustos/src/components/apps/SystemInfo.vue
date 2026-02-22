@@ -152,6 +152,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import type { NetworkInfo, MemoryInfo } from '@/types'
 
 const browserInfo = ref('')
 const screenResolution = ref('')
@@ -219,11 +220,11 @@ const calculateSessionStorageSize = (): string => {
 }
 
 const updateNetworkInfo = () => {
-  const connection = (navigator as any).connection
+  const connection = (navigator as unknown as { connection?: NetworkInfo }).connection
   if (connection) {
-    connectionType.value = connection.effectiveType || connection.type || '未知'
-    downloadSpeed.value = connection.downlink ? `${connection.downlink} Mbps` : '未知'
-    uploadSpeed.value = connection.rtt ? `${connection.rtt} ms` : '未知'
+    connectionType.value = connection.effectiveType || '未知'
+    downloadSpeed.value = `${connection.downlink} Mbps`
+    uploadSpeed.value = `${connection.rtt} ms`
   }
 }
 
@@ -258,12 +259,13 @@ onMounted(() => {
   dpi.value = `${window.devicePixelRatio}x`
 
   // 内存信息
-  if ((performance as any).memory) {
-    const mem = (performance as any).memory
+  const perf = performance as unknown as { memory?: MemoryInfo }
+  if (perf.memory) {
+    const mem = perf.memory
     const used = mem.usedJSHeapSize
     const total = mem.totalJSHeapSize
     const limit = mem.jsHeapSizeLimit
-    
+
     memoryUsage.value = formatBytes(used)
     memoryLimit.value = formatBytes(limit)
     memoryPercentage.value = Math.round((used / limit) * 100)
@@ -282,8 +284,9 @@ onMounted(() => {
   updateNetworkInfo()
   window.addEventListener('online', handleOnlineStatus)
   window.addEventListener('offline', handleOnlineStatus)
-  if ((navigator as any).connection) {
-    (navigator as any).connection.addEventListener('change', updateNetworkInfo)
+  const nav = navigator as unknown as { connection?: { addEventListener: (event: string, callback: () => void) => void } }
+  if (nav.connection) {
+    nav.connection.addEventListener('change', updateNetworkInfo)
   }
 
   // 时间信息
@@ -309,15 +312,16 @@ onMounted(() => {
 
   // 监听内存变化
   setInterval(() => {
-    if ((performance as any).memory) {
-      const mem = (performance as any).memory
+    const perf = performance as unknown as { memory?: MemoryInfo }
+    if (perf.memory) {
+      const mem = perf.memory
       const used = mem.usedJSHeapSize
       const limit = mem.jsHeapSizeLimit
-      
+
       memoryUsage.value = formatBytes(used)
       memoryPercentage.value = Math.round((used / limit) * 100)
     }
-    
+
     localStorageSize.value = calculateStorageSize()
     sessionStorageSize.value = calculateSessionStorageSize()
   }, 2000)
@@ -329,8 +333,9 @@ onUnmounted(() => {
   }
   window.removeEventListener('online', handleOnlineStatus)
   window.removeEventListener('offline', handleOnlineStatus)
-  if ((navigator as any).connection) {
-    (navigator as any).connection.removeEventListener('change', updateNetworkInfo)
+  const nav = navigator as unknown as { connection?: { removeEventListener: (event: string, callback: () => void) => void } }
+  if (nav.connection) {
+    nav.connection.removeEventListener('change', updateNetworkInfo)
   }
 })
 </script>

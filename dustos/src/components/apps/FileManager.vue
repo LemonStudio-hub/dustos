@@ -190,6 +190,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useFilesystemStore } from '@/stores/filesystem'
 import { useSystemStore } from '@/stores/system'
 import { useDesktopStore } from '@/stores/desktop'
+import type { FileItem, SearchResult } from '@/types'
 
 const fs = useFilesystemStore()
 const systemStore = useSystemStore()
@@ -272,7 +273,7 @@ function refresh() {
   fs.changePath(currentPath.value)
 }
 
-function openFile(file: any) {
+function openFile(file: FileItem) {
   if (file.type === 'folder') {
     const newPath = currentPath.value === '/' ? '/' + file.name : currentPath.value + '/' + file.name
     navigateTo(newPath)
@@ -286,7 +287,7 @@ function openFile(file: any) {
   }
 }
 
-function openInNotepad(file: any) {
+function openInNotepad(file: FileItem) {
   const content = fs.getFileContent(file.id) || ''
   // 打开记事本并加载内容
   const notepadIcon = desktopStore.desktopIcons.find(i => i.component === 'Notepad')
@@ -337,7 +338,7 @@ function deleteSelected() {
   }
 }
 
-function openSearchResult(result: any) {
+function openSearchResult(result: SearchResult) {
   navigateTo(result.path)
   showSearch.value = false
   searchQuery.value = ''

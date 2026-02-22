@@ -1,37 +1,6 @@
 import { ref, reactive, computed } from 'vue'
 import { defineStore } from 'pinia'
-
-export interface FileItem {
-  id: string
-  name: string
-  type: 'file' | 'folder'
-  size: number
-  modified: Date
-  icon: string
-  content?: string
-  path?: string
-}
-
-// 搜索结果项接口
-export interface SearchResult extends FileItem {
-  path: string
-}
-
-// 搜索过滤器接口
-export interface SearchFilters {
-  type?: 'all' | 'file' | 'folder'
-  minSize?: number
-  maxSize?: number
-  startDate?: Date
-  endDate?: Date
-  extensions?: string[]
-}
-
-// 排序方式
-export type SortBy = 'name' | 'size' | 'date' | 'type' | 'path'
-
-// 排序顺序
-export type SortOrder = 'asc' | 'desc'
+import type { FileItem, SearchResult, SearchFilters, SortBy, SortOrder } from '@/types'
 
 export const useFilesystemStore = defineStore('filesystem', () => {
   const currentPath = ref('/')

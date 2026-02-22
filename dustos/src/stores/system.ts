@@ -2,13 +2,7 @@ import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { WALLPAPERS } from '@/constants'
 import { playSound, setSoundEnabled as setSoundManagerEnabled, setSoundVolume as setSoundManagerVolume } from '@/utils/sound'
-
-interface Notification {
-  id: string
-  title: string
-  message: string
-  time: Date
-}
+import type { Notification, Wallpaper } from '@/types'
 
 export const useSystemStore = defineStore('system', () => {
   // 从 localStorage 加载设置

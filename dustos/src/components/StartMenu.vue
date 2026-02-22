@@ -91,6 +91,7 @@
 import { ref, computed } from 'vue'
 import { useDesktopStore } from '@/stores/desktop'
 import { useSystemStore } from '@/stores/system'
+import type { DesktopIcon } from '@/types'
 
 const desktopStore = useDesktopStore()
 const systemStore = useSystemStore()
@@ -140,7 +141,7 @@ const recentApps = computed(() => {
   ]
 })
 
-function openApp(icon: any) {
+function openApp(icon: DesktopIcon) {
   desktopStore.openWindow(icon)
   desktopStore.closeStartMenu()
 }

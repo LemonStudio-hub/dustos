@@ -94,6 +94,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import type { Bookmark } from '@/types'
 
 const currentUrl = ref('https://www.example.com')
 const searchQuery = ref('')
@@ -117,7 +118,7 @@ const quickLinks = [
   { name: 'Reddit', icon: '🔴', url: 'https://www.reddit.com' },
 ]
 
-const bookmarks = ref<any[]>([])
+const bookmarks = ref<Bookmark[]>([])
 
 const canGoBack = computed(() => historyIndex.value > 0)
 const canGoForward = computed(() => historyIndex.value < history.value.length - 1)

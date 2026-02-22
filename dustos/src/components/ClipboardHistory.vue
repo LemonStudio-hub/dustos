@@ -75,6 +75,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useClipboardStore } from '@/stores/clipboard'
 import { useSystemStore } from '@/stores/system'
+import type { ClipboardItem } from '@/types'
 
 defineEmits<{
   close: []
@@ -88,10 +89,10 @@ const currentFilter = ref<'all' | 'text' | 'html' | 'image'>('all')
 const hoveredItemId = ref('')
 
 const filters = [
-  { label: '全部', value: 'all' },
-  { label: '文本', value: 'text' },
-  { label: 'HTML', value: 'html' },
-  { label: '图片', value: 'image' }
+  { label: '全部', value: 'all' as const },
+  { label: '文本', value: 'text' as const },
+  { label: 'HTML', value: 'html' as const },
+  { label: '图片', value: 'image' as const }
 ]
 
 const filteredHistory = computed(() => {
@@ -120,7 +121,7 @@ function onSearch() {
   // 搜索时自动滚动到顶部
 }
 
-function copyItem(item: any) {
+function copyItem(item: ClipboardItem) {
   clipboardStore.copyToClipboard(item)
   systemStore.addNotification('已复制', '内容已复制到剪贴板')
 }

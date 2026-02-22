@@ -79,6 +79,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import type { Shortcut, ShortcutCategory } from '@/types'
 
 interface Shortcut {
   id: string
@@ -337,10 +338,10 @@ function loadShortcuts() {
   if (saved) {
     try {
       const config = JSON.parse(saved)
-      config.forEach((categoryConfig: any) => {
+      config.forEach((categoryConfig: ShortcutCategory) => {
         const category = shortcutCategories.value.find(c => c.id === categoryConfig.id)
         if (category) {
-          categoryConfig.shortcuts.forEach((shortcutConfig: any) => {
+          categoryConfig.shortcuts.forEach((shortcutConfig: Shortcut) => {
             const shortcut = category.shortcuts.find(s => s.id === shortcutConfig.id)
             if (shortcut) {
               shortcut.keys = shortcutConfig.keys

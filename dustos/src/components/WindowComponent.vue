@@ -120,9 +120,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef } from 'vue'
+import { computed, ref, shallowRef, type Component } from 'vue'
 import { useDesktopStore } from '@/stores/desktop'
 import { useSystemStore } from '@/stores/system'
+import type { WindowState, AppComponentName } from '@/types'
 import FileManager from './apps/FileManager.vue'
 import Terminal from './apps/Terminal.vue'
 import Settings from './apps/Settings.vue'
@@ -146,14 +147,14 @@ import LogViewer from './apps/LogViewer.vue'
 import AppStore from './apps/AppStore.vue'
 
 const props = defineProps<{
-  window: any
+  window: WindowState
 }>()
 
 const desktopStore = useDesktopStore()
 const systemStore = useSystemStore()
 const contentRef = ref<HTMLElement | null>(null)
 
-const components: any = {
+const components: Record<AppComponentName, Component> = {
   FileManager,
   Terminal,
   Settings,

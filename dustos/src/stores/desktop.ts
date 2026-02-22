@@ -1,74 +1,10 @@
 import { ref, reactive } from 'vue'
 import { defineStore } from 'pinia'
 import { useSystemStore } from './system'
-
-export interface Window {
-  id: string
-  title: string
-  icon: string
-  component: string
-  x: number
-  y: number
-  width: number
-  height: number
-  isMinimized: boolean
-  isMaximized: boolean
-  zIndex: number
-  isPinned: boolean
-  opacity: number
-  prevX?: number
-  prevY?: number
-  prevWidth?: number
-  prevHeight?: number
-}
-
-export interface WindowState {
-  id: string
-  title: string
-  icon: string
-  component: string
-  x: number
-  y: number
-  width: number
-  height: number
-  isMinimized: boolean
-  isMaximized: boolean
-  zIndex: number
-  isPinned: boolean
-  opacity: number
-  prevX?: number
-  prevY?: number
-  prevWidth?: number
-  prevHeight?: number
-}
-
-export interface DesktopIcon {
-  id: string
-  name: string
-  icon: string
-  component: string
-  x: number
-  y: number
-}
-
-export interface IconGroup {
-  id: string
-  name: string
-  x: number
-  y: number
-  iconIds: string[]
-  isExpanded: boolean
-}
-
-export interface WindowSnapshot {
-  id: string
-  name: string
-  createdAt: number
-  windows: WindowState[]
-}
+import type { WindowState, DesktopIcon, IconGroup, WindowSnapshot } from '@/types'
 
 export const useDesktopStore = defineStore('desktop', () => {
-  const windows = ref<Window[]>([])
+  const windows = ref<WindowState[]>([])
   const desktopIcons = ref<DesktopIcon[]>([
     { id: '1', name: '文件管理器', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>', component: 'FileManager', x: 20, y: 20 },
     { id: '2', name: '终端', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>', component: 'Terminal', x: 20, y: 120 },

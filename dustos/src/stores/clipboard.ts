@@ -1,13 +1,6 @@
 import { ref, reactive } from 'vue'
 import { defineStore } from 'pinia'
-
-export interface ClipboardItem {
-  id: string
-  content: string
-  timestamp: number
-  type: 'text' | 'html' | 'image'
-  preview: string
-}
+import type { ClipboardItem } from '@/types'
 
 export const useClipboardStore = defineStore('clipboard', () => {
   const history = ref<ClipboardItem[]>([])
@@ -20,8 +13,8 @@ export const useClipboardStore = defineStore('clipboard', () => {
     const saved = localStorage.getItem('dustos_clipboardHistory')
     if (saved) {
       try {
-        const loaded = JSON.parse(saved)
-        history.value = loaded.map((item: any) => ({
+        const loaded = JSON.parse(saved) as ClipboardItem[]
+        history.value = loaded.map((item: ClipboardItem) => ({
           ...item,
           timestamp: new Date(item.timestamp).getTime()
         }))

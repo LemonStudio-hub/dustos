@@ -356,20 +356,6 @@ function showHelp() {
 `
   addOutput('', helpText.trim())
 }
-  ls [path]     列出文件和目录
-  cd [path]     切换目录
-  cat [file]    显示文件内容
-  mkdir [name]  创建目录
-  touch [name]  创建空文件
-  rm [file]     删除文件
-  echo [text]   输出文本
-  neofetch      显示系统信息
-  uname [-a]    显示系统信息
-  history       显示命令历史
-  exit          退出终端（不可用）
-`
-  addOutput('', helpText.trim())
-}
 
 function clearScreen() {
   output.value = []
